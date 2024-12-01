@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `feedbacksystemdb`
+-- 
 --
 
 -- --------------------------------------------------------
@@ -63,11 +63,11 @@ CREATE TABLE `user` (
   `purok` varchar(255) NOT NULL,
   `civilStatus` varchar(50) NOT NULL,
   `userName` varchar(255) NOT NULL,
-  `gender` enum('male', 'female') NOT NULL
-  `userType` enum('admin', 'user') NOT NULL DEFAULT 'user';
+  `gender` enum('male', 'female') NOT NULL,
+  `userType` enum('admin', 'user') NOT NULL DEFAULT 'user',
   `password` varchar(255) NOT NULL,
   `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `status` VARCHAR(20) NOT NULL DEFAULT 'active';
+  `status` VARCHAR(20) NOT NULL DEFAULT 'active',
   `educationBackground` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
