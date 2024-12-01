@@ -75,3 +75,22 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+-- Table structure for table `events`
+CREATE TABLE `events` (
+  `eventId` int(11) NOT NULL AUTO_INCREMENT,
+  `eventName` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `date` date NOT NULL,
+  `userId` int(11) NOT NULL,
+  `place` varchar(255) NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'active',
+  `startDate` datetime NOT NULL,
+  `endDate` datetime NOT NULL,
+  PRIMARY KEY (`eventId`),
+  FOREIGN KEY (`userId`) REFERENCES `user`(`userId`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
