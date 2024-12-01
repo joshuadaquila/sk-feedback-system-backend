@@ -63,10 +63,11 @@ CREATE TABLE `user` (
   `purok` varchar(255) NOT NULL,
   `civilStatus` varchar(50) NOT NULL,
   `userName` varchar(255) NOT NULL,
-  `userType` enum('admin','user') NOT NULL,
+  `gender` enum('male', 'female') NOT NULL
+  `userType` enum('admin', 'user') NOT NULL DEFAULT 'user';
   `password` varchar(255) NOT NULL,
   `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `status` VARCHAR(20) NOT NULL DEFAULT 'active';
   `educationBackground` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -125,3 +126,41 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `announcement`
+--
+
+CREATE TABLE `announcement` (
+  `announcementId` int(11) NOT NULL AUTO_INCREMENT,
+  `audience` varchar(255) NOT NULL,
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `title` varchar(255) NOT NULL,
+  `description` text,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  PRIMARY KEY (`announcementId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+-- Indexes for dumped tables
+
+--
+-- Indexes for table `announcement`
+--
+ALTER TABLE `announcement`
+  ADD PRIMARY KEY (`announcementId`);
+
+-- AUTO_INCREMENT for dumped tables
+
+--
+-- AUTO_INCREMENT for table `announcement`
+--
+ALTER TABLE `announcement`
+  MODIFY `announcementId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+COMMIT;

@@ -18,27 +18,34 @@ router.post('/createAccount', async (req, res) => {
     civilStatus,
     educationBackground,
     userName,
-    userType,
+    userType, // userType will have a default value 'user', so it can be optional
     password,
-    createdAt,
-    status
+    status,
+    gender,
   } = req.body;
 
   try {
+    // If userType is not provided, default it to 'user'
+    const finalUserType = userType || 'user';
+    
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Use current timestamp for createdAt if not provided
+    const createdAt = new Date();  // This will provide the current timestamp
 
     const sql = `
       INSERT INTO user (
         firstName, middleName, lastName, extensionName,
         birthday, purok, civilStatus, educationBackground, userName, userType,
-        password, createdAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        password, createdAt, status, gender
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
       firstName, middleName, lastName, extensionName,
       birthday, purok, civilStatus, educationBackground, userName, userType,
-      hashedPassword, createdAt, status
+      hashedPassword, createdAt, status, gender
     ];
 
     db.query(sql, values, (err, result) => {
@@ -53,6 +60,7 @@ router.post('/createAccount', async (req, res) => {
     res.status(500).json({ error: 'Error hashing password' });
   }
 });
+
 
 router.get('/getTest', async (req, res) => {
   console.log("Hello World");
