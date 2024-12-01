@@ -31,8 +31,8 @@ router.post('/createAccount', async (req, res) => {
       INSERT INTO user (
         firstName, middleName, lastName, extensionName,
         birthday, purok, civilStatus, educationBackground, userName, userType,
-        password, createdAt, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        password, createdAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -98,6 +98,7 @@ router.post('/login', async (req, res) => {
       res.status(200).json({
         message: 'Login successful!',
         role: user.userType,
+        userId: user.userId,
         token,
       });
     } catch (err) {
@@ -106,5 +107,48 @@ router.post('/login', async (req, res) => {
     }
   });
 });
+
+router.post('/addEvent', async (req, res) => {
+  const { eventName, description, place, userId, startDate, endDate } = req.body;
+
+  console.log(req.body)
+
+  // Ensure all required fields are provided
+  if (!eventName || !description || !place || !userId || !startDate || !endDate) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // SQL query to insert the event
+  const sql = `INSERT INTO events (eventName, description, place, userId, startDate, endDate)
+               VALUES (?, ?, ?, ?, ?, ?)`;
+
+  // Perform the insertion
+  db.query(sql, [eventName, description, place, userId, startDate, endDate], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    // Return a success message if the event is added successfully
+    return res.status(200).json({ message: 'Event added successfully', eventId: results.insertId });
+  });
+});
+
+router.get('/getAllEvents', async (req, res) => {
+  const sql = 'SELECT * FROM events'; 
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'No events found' });
+    }
+    return res.status(200).json({ events: results });
+  });
+});
+
 
 module.exports = router;
