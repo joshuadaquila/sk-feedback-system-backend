@@ -135,7 +135,7 @@ router.post('/addEvent', async (req, res) => {
 });
 
 router.get('/getAllEvents', async (req, res) => {
-  const sql = 'SELECT * FROM events'; 
+  const sql = 'SELECT e.*, u.* FROM events e INNER JOIN user u ON e.userId = u.userId'; 
 
   db.query(sql, (err, results) => {
     if (err) {
