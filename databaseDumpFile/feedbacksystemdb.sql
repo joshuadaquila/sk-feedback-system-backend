@@ -164,3 +164,36 @@ ALTER TABLE `announcement`
   MODIFY `announcementId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 COMMIT;
+
+
+
+-- Create table for 'feedbacks'
+CREATE TABLE `feedbacks` (
+  `feedbackId` int(11) NOT NULL AUTO_INCREMENT,
+  `userId` int(11) NOT NULL,
+  `eventId` int(11) NOT NULL,
+  `content` text,
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `status` varchar(50),
+  PRIMARY KEY (`feedbackId`),
+  FOREIGN KEY (`userId`) REFERENCES `users`(`userId`),  
+  FOREIGN KEY (`eventId`) REFERENCES `events`(`eventId`) 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+-- Indexes for dumped tables
+--
+-- Indexes for table `feedbacks`
+--
+ALTER TABLE `feedbacks`
+  ADD PRIMARY KEY (`feedbackId`);
+
+-- AUTO_INCREMENT for dumped tables
+--
+-- AUTO_INCREMENT for table `feedbacks`
+--
+ALTER TABLE `feedbacks`
+  MODIFY `feedbackId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+COMMIT;

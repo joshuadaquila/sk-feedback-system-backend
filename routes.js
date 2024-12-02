@@ -137,7 +137,6 @@ router.post('/addEvent', async (req, res) => {
       return res.status(500).json({ error: 'Database error' });
     }
 
-    // Return a success message if the event is added successfully
     return res.status(200).json({ message: 'Event added successfully', eventId: results.insertId });
   });
 });
@@ -157,6 +156,29 @@ router.get('/getAllEvents', async (req, res) => {
     return res.status(200).json({ events: results });
   });
 });
+
+router.post("/CreateAnnouncements", async (req, res) => {
+  const { title, description, audience } = req.body;
+
+  // Ensure required fields are provided
+  if (!title || !description || !audience) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const createdAt = new Date();  // Use current timestamp for createdAt if not provided
+  
+  const sql = `INSERT INTO Announcements (title, description, audience, createdAt, status) 
+               VALUES (?, ?, ?, ?, 'active')`;
+
+  db.query(sql, [title, description, audience, createdAt], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Failed to create announcement' });
+    }
+    return res.status(201).json({ message: 'Announcement created successfully!', announcementId: result.insertId });
+  });
+});
+
 
 
 module.exports = router;
