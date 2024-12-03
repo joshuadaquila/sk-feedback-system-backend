@@ -147,6 +147,37 @@ router.post('/addFeedback', async (req, res) => {
   });
 });
 
+router.get('/getFeedback', async (req, res) => {
+  const sql = `
+    SELECT 
+      CASE 
+        WHEN e.startDate > NOW() THEN 'upcoming'
+        WHEN e.startDate <= NOW() AND e.endDate >= NOW() THEN 'ongoing'
+        ELSE 'past'
+      END AS category,
+      COUNT(f.feedbackId) AS feedbackCount
+    FROM feedbacks f
+    JOIN events e ON f.eventId = e.eventId
+    WHERE f.status = 'active'
+    GROUP BY category;
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    // Transform results into a structured format
+    const feedbackCounts = results.reduce((acc, row) => {
+      acc[row.category] = row.feedbackCount;
+      return acc;
+    }, { upcoming: 0, ongoing: 0, past: 0 });
+
+    return res.status(200).json(feedbackCounts);
+  });
+});
+
 
 // router.post('/user/checkFeedback', (req, res) => {
 //   const { userId, eventId } = req.query;
