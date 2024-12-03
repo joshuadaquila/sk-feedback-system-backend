@@ -152,8 +152,8 @@ CREATE TABLE `announcement` (
 --
 -- Indexes for table `announcement`
 --
-ALTER TABLE `announcement`
-  ADD PRIMARY KEY (`announcementId`);
+-- ALTER TABLE `announcement`
+--   ADD PRIMARY KEY (`announcementId`);
 
 -- AUTO_INCREMENT for dumped tables
 
@@ -166,7 +166,6 @@ ALTER TABLE `announcement`
 COMMIT;
 
 
-
 -- Create table for 'feedbacks'
 CREATE TABLE `feedbacks` (
   `feedbackId` int(11) NOT NULL AUTO_INCREMENT,
@@ -176,7 +175,7 @@ CREATE TABLE `feedbacks` (
   `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
   `status` varchar(50),
   PRIMARY KEY (`feedbackId`),
-  FOREIGN KEY (`userId`) REFERENCES `users`(`userId`),  
+  FOREIGN KEY (`userId`) REFERENCES `user`(`userId`),  
   FOREIGN KEY (`eventId`) REFERENCES `events`(`eventId`) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -186,8 +185,6 @@ CREATE TABLE `feedbacks` (
 --
 -- Indexes for table `feedbacks`
 --
-ALTER TABLE `feedbacks`
-  ADD PRIMARY KEY (`feedbackId`);
 
 -- AUTO_INCREMENT for dumped tables
 --
