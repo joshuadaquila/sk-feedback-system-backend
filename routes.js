@@ -141,6 +141,26 @@ router.post('/addEvent', async (req, res) => {
   });
 });
 
+router.post('/addFeedback', async (req, res) => {
+  const { userId, eventId, content } = req.body;
+
+  console.log(req.body)
+
+  // SQL query to insert the event
+  const sql = `INSERT INTO feedbacks (userId, eventId, content, status)
+               VALUES (?, ?, ?, ?)`;
+
+  // Perform the insertion
+  db.query(sql, [userId, eventId, content, "active"], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    return res.status(200).json({ message: 'Feedback added successfully', eventId: results.insertId });
+  });
+});
+
 router.get('/getAllEvents', async (req, res) => {
   const sql = 'SELECT e.*, u.* FROM events e INNER JOIN user u ON e.userId = u.userId'; 
 
