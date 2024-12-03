@@ -18,21 +18,16 @@ router.post('/createAccount', async (req, res) => {
     civilStatus,
     educationBackground,
     userName,
-    userType, // userType will have a default value 'user', so it can be optional
+    userType, 
     password,
     status,
     gender,
   } = req.body;
 
   try {
-    // If userType is not provided, default it to 'user'
     const finalUserType = userType || 'user';
-    
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Use current timestamp for createdAt if not provided
-    const createdAt = new Date();  // This will provide the current timestamp
+    const createdAt = new Date();
 
     const sql = `
       INSERT INTO user (
@@ -120,17 +115,12 @@ router.post('/addEvent', async (req, res) => {
   const { eventName, description, place, userId, startDate, endDate } = req.body;
 
   console.log(req.body)
-
-  // Ensure all required fields are provided
   if (!eventName || !description || !place || !userId || !startDate || !endDate) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-
-  // SQL query to insert the event
   const sql = `INSERT INTO events (eventName, description, place, userId, startDate, endDate)
                VALUES (?, ?, ?, ?, ?, ?)`;
 
-  // Perform the insertion
   db.query(sql, [eventName, description, place, userId, startDate, endDate], (err, results) => {
     if (err) {
       console.error(err);
@@ -145,12 +135,8 @@ router.post('/addFeedback', async (req, res) => {
   const { userId, eventId, content } = req.body;
 
   console.log(req.body)
-
-  // SQL query to insert the event
   const sql = `INSERT INTO feedbacks (userId, eventId, content, status)
                VALUES (?, ?, ?, ?)`;
-
-  // Perform the insertion
   db.query(sql, [userId, eventId, content, "active"], (err, results) => {
     if (err) {
       console.error(err);
@@ -160,6 +146,27 @@ router.post('/addFeedback', async (req, res) => {
     return res.status(200).json({ message: 'Feedback added successfully', eventId: results.insertId });
   });
 });
+
+
+// router.post('/user/checkFeedback', (req, res) => {
+//   const { userId, eventId } = req.query;
+
+//   if (!userId || !eventId) {
+//     return res.status(400).json({ message: 'userId and eventId are required' });
+//   }
+
+//   const sql = 'SELECT COUNT(*) AS count FROM feedbacks WHERE userId = ? AND eventId = ?';
+//   db.query(sql, [userId, eventId], (err, results) => {
+//     if (err) {
+//       console.error('Error checking feedback:', err);
+//       return res.status(500).json({ message: 'Database error' });
+//     }
+
+//     const feedbackExists = results[0].count > 0;
+//     res.json({ exists: feedbackExists });
+//   });
+// });
+
 
 router.get('/getAllEvents', async (req, res) => {
   const sql = 'SELECT e.*, u.* FROM events e INNER JOIN user u ON e.userId = u.userId'; 
