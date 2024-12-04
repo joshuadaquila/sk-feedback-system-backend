@@ -167,14 +167,34 @@ router.get('/getFeedback', async (req, res) => {
       console.error(err);
       return res.status(500).json({ error: 'Database error' });
     }
-
-    // Transform results into a structured format
     const feedbackCounts = results.reduce((acc, row) => {
       acc[row.category] = row.feedbackCount;
       return acc;
     }, { upcoming: 0, ongoing: 0, past: 0 });
 
     return res.status(200).json(feedbackCounts);
+  });
+});
+
+router.get('/getFeedbackByEvent/:eventId', async (req, res) => {
+  const { eventId } = req.params;
+
+  const sql = `
+    SELECT 
+      f.content,
+      f.userId
+    FROM feedbacks f
+    WHERE f.eventId = ? AND f.status = 'active'
+    ORDER BY f.createdAt DESC;
+  `;
+
+  db.query(sql, [eventId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    return res.status(200).json({ feedbacks: results });
   });
 });
 
