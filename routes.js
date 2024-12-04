@@ -111,6 +111,75 @@ router.post('/login', async (req, res) => {
   });
 });
 
+const verifyToken = (req, res, next) => {
+  const token = req.headers['authorization']; 
+  if (!token) return res.status(403).send('Token is required');
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(403).send('Invalid token');
+    req.user = decoded; 
+    next();
+  });
+};
+
+router.get('/getProfile', verifyToken, async (req, res) => {
+  try {
+    const token = req.headers['authorization'].split(' ')[1]; 
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    const verifyToken = (req, res, next) => {
+      const token = req.headers['authorization']; 
+      if (!token) {
+        console.log("No token provided");
+        return res.status(403).send('Token is required');
+      }
+    
+      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+          console.log("Invalid token:", err);
+          return res.status(403).send('Invalid token');
+        }
+        console.log("Decoded Token:", decoded); 
+        req.user = decoded; 
+        next();
+      });
+    };
+    
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+
+      
+      const sql = 'SELECT * FROM user WHERE userId = ?';
+      db.query(sql, [decoded.userId], (err, results) => {
+        if (err) {
+          console.error('Database error:', err);
+          return res.status(500).json({ error: 'Database error' });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        const user = results[0];
+        res.json({
+          firstName: user.firstName,
+          middleName: user.middleName,
+          lastName: user.lastName,
+          address: user.address,
+          purok: user.purok,
+          profilePic: user.profilePic || 'https://via.placeholder.com/150',
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).send('Server error');
+  }
+});
+
 router.post('/addEvent', async (req, res) => {
   const { eventName, description, place, userId, startDate, endDate } = req.body;
 
@@ -237,13 +306,11 @@ router.get('/getAllEvents', async (req, res) => {
 
 router.post("/CreateAnnouncements", async (req, res) => {
   const { title, description, audience } = req.body;
-
-  // Ensure required fields are provided
   if (!title || !description || !audience) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  const createdAt = new Date();  // Use current timestamp for createdAt if not provided
+  const createdAt = new Date();
   
   const sql = `INSERT INTO Announcements (title, description, audience, createdAt, status) 
                VALUES (?, ?, ?, ?, 'active')`;
@@ -256,6 +323,9 @@ router.post("/CreateAnnouncements", async (req, res) => {
     return res.status(201).json({ message: 'Announcement created successfully!', announcementId: result.insertId });
   });
 });
+
+
+
 
 
 
