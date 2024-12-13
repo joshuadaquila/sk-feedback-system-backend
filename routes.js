@@ -315,17 +315,16 @@ router.get('/getAllEvents', async (req, res) => {
 
 router.post('/CreateAnnouncements', async (req, res) => {
   try {
-    const { title, description, audience = "All" } = req.body; 
+    const { title, description, audience = "All", userId } = req.body; 
     if (!title || !description) {
       return res.status(400).json({ error: "Title and description are required" });
     }
 
-    const createdAt = new Date();
     const sql = `
-      INSERT INTO Announcement (title, description, audience, createdAt, status) 
-      VALUES (?, ?, ?, ?, 'active')
+      INSERT INTO Announcement (title, description, audience, status, userId) 
+      VALUES (?, ?, ?, 'active',?)
     `;
-    db.query(sql, [title, description, audience, createdAt], (err, result) => {
+    db.query(sql, [title, description, audience, userId], (err, result) => {
       if (err) {
         console.error("Database error:", err);
         return res.status(500).json({ error: "Failed to create announcement" });
@@ -363,6 +362,63 @@ router.get('/getAnnouncements', async (req, res) => {
     
     return res.status(200).json({ announcements: results });
   });
+});
+
+
+router.delete('/deleteAnnouncement/:announcementId', async (req, res) => {
+  const { announcementId } = req.params;  
+  if (!announcementId) {
+    return res.status(400).json({ error: "Announcement ID is required" });
+  }
+
+  try {
+    const sql = "DELETE FROM Announcement WHERE announcementId = ?";  
+
+    db.query(sql, [announcementId], (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ error: "Failed to delete announcement" });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Announcement not found" });
+      }
+
+      res.status(200).json({ message: "Announcement deleted successfully!" });
+    });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).json({ error: "An unexpected error occurred" });
+  }
+});
+
+
+router.delete('/deleteEvent/:eventId', async (req, res) => {
+  const { eventId } = req.params; 
+
+  if (!eventId) {
+    return res.status(400).json({ error: "Event ID is required" });
+  }
+
+  try {
+    const sql = "DELETE FROM Events WHERE eventId = ?";  
+
+    db.query(sql, [eventId], (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ error: "Failed to delete event" });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      res.status(200).json({ message: "Event deleted successfully!" });
+    });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).json({ error: "An unexpected error occurred" });
+  }
 });
 
 
