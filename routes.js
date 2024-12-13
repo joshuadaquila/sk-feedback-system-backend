@@ -122,48 +122,56 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-router.get('/getProfile', verifyToken, async (req, res) => {
+router.get('/getProfile', async (req, res) => {
   try {
-    const token = req.headers['authorization'].split(' ')[1]; 
+    // console.log("Starting /getProfile request");
+
+    // Extract and log the token
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+      console.error("No Authorization header provided");
+      return res.status(401).json({ error: 'No Authorization header provided' });
+    }
+
+    // console.log("Authorization header received:", authHeader);
+
+    const token = authHeader.split(' ')[1];
     if (!token) {
+      console.error("No token provided in Authorization header");
       return res.status(401).json({ error: 'No token provided' });
     }
-    const verifyToken = (req, res, next) => {
-      const token = req.headers['authorization']; 
-      if (!token) {
-        console.log("No token provided");
-        return res.status(403).send('Token is required');
-      }
-    
-      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) {
-          console.log("Invalid token:", err);
-          return res.status(403).send('Invalid token');
-        }
-        console.log("Decoded Token:", decoded); 
-        req.user = decoded; 
-        next();
-      });
-    };
-    
+
+    // console.log("Extracted token:", token);
+
+    // Verify the token
     jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
       if (err) {
-        return res.status(401).json({ error: 'Invalid token' });
+        console.error("Token verification failed:", err.message);
+        return res.status(403).json({ error: 'Invalid token' });
       }
 
-      
+      console.log("Token successfully verified. Decoded payload:", decoded);
+
+      // Log the SQL query and parameters
       const sql = 'SELECT * FROM user WHERE userId = ?';
+      // console.log("Executing SQL query:", sql, "with parameter:", decoded.userId);
+
       db.query(sql, [decoded.userId], (err, results) => {
         if (err) {
-          console.error('Database error:', err);
+          console.error("Database query error:", err);
           return res.status(500).json({ error: 'Database error' });
         }
 
+        // console.log("Query results:", results);
+
         if (results.length === 0) {
+          console.warn("No user found with userId:", decoded.userId);
           return res.status(404).json({ error: 'User not found' });
         }
 
         const user = results[0];
+        // console.log("User data retrieved:", user);
+
         res.json({
           firstName: user.firstName,
           middleName: user.middleName,
@@ -172,11 +180,12 @@ router.get('/getProfile', verifyToken, async (req, res) => {
           purok: user.purok,
           profilePic: user.profilePic || 'https://via.placeholder.com/150',
         });
+        // console.log("Profile data sent to client");
       });
     });
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    res.status(500).send('Server error');
+    console.error("Unexpected error in /getProfile:", error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
