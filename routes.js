@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('./db'); 
 require('dotenv').config();
-
+const axios = require('axios')
 const router = express.Router();
 
 router.post('/createAccount', async (req, res) => {
@@ -192,22 +192,61 @@ router.get('/getProfile', async (req, res) => {
 router.post('/addEvent', async (req, res) => {
   const { eventName, description, place, userId, startDate, endDate } = req.body;
 
-  console.log(req.body)
+  console.log(req.body);
+
+  // Check for missing fields
   if (!eventName || !description || !place || !userId || !startDate || !endDate) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
+
+  // SQL query to insert the event
   const sql = `INSERT INTO events (eventName, description, place, userId, startDate, endDate)
                VALUES (?, ?, ?, ?, ?, ?)`;
 
+  // Notification data
+  const notification = {
+    "app_id": "26afd8bc-bd56-4ff1-804c-8490b49d4d2d", // OneSignal app ID
+    "headings": { "en": "Test Notification" },
+    "contents": { "en": "New event is added. Check it out!" },
+    "included_segments": "Total Subscriptions", // Send notification to all users, or you can customize it
+    "data": {}
+  };
+
+  console.log(notification);
+
+  // Insert event into the database
   db.query(sql, [eventName, description, place, userId, startDate, endDate], (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: 'Database error' });
     }
 
+    // Send notification after successful event creation
+    const options = {
+      method: 'POST',
+      url: 'https://onesignal.com/api/v1/notifications', // Correct OneSignal API endpoint
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        'Authorization': `Basic os_v2_app_e2x5rpf5kzh7dacmqsiljhknfw2bfbzk3pmeovvnxwbmull6orajzbjwxdyinuj6yclfrcjxi7qfeondrhtfg2qi2zgilwvm4lzydwi` // Replace with your OneSignal REST API Key
+      },
+      data: notification
+    };
+
+    // Make API call to send notification
+    axios(options)
+      .then(response => {
+        console.log('Notification sent:', response.data);
+      })
+      .catch(error => {
+        console.error('Error sending notification:', error);
+      });
+
+    // Return response to the client
     return res.status(200).json({ message: 'Event added successfully', eventId: results.insertId });
   });
 });
+
 
 router.post('/addFeedback', async (req, res) => {
   const { userId, eventId, content } = req.body;
