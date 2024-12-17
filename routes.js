@@ -189,6 +189,26 @@ router.get('/getProfile', async (req, res) => {
   }
 });
 
+router.get('/getNotifications', async (req, res) => {
+  const sql = `SELECT * FROM notification`;
+
+  // Execute the query to fetch notifications
+  db.query(sql, (err, results) => {
+    if (err) {
+      // Log the error and send a 500 status if there's a database error
+      console.error('Error fetching notifications:', err);
+      return res.status(500).json({ error: 'Database error while fetching notifications' });
+    }
+
+    // If there are results, send them back as a JSON response
+    return res.status(200).json({
+      message: 'Notifications fetched successfully',
+      notifications: results
+    });
+  });
+});
+
+
 router.post('/addEvent', async (req, res) => {
   const { eventName, description, place, userId, startDate, endDate } = req.body;
 
@@ -203,17 +223,6 @@ router.post('/addEvent', async (req, res) => {
   const sql = `INSERT INTO events (eventName, description, place, userId, startDate, endDate)
                VALUES (?, ?, ?, ?, ?, ?)`;
 
-  // Notification data
-  const notification = {
-    "app_id": "26afd8bc-bd56-4ff1-804c-8490b49d4d2d", // OneSignal app ID
-    "headings": { "en": "Test Notification" },
-    "contents": { "en": "New event is added. Check it out!" },
-    "included_segments": "Total Subscriptions", // Send notification to all users, or you can customize it
-    "data": {}
-  };
-
-  console.log(notification);
-
   // Insert event into the database
   db.query(sql, [eventName, description, place, userId, startDate, endDate], (err, results) => {
     if (err) {
@@ -221,31 +230,67 @@ router.post('/addEvent', async (req, res) => {
       return res.status(500).json({ error: 'Database error' });
     }
 
-    // Send notification after successful event creation
-    const options = {
-      method: 'POST',
-      url: 'https://onesignal.com/api/v1/notifications', // Correct OneSignal API endpoint
-      headers: {
-        accept: 'application/json',
-        'content-type': 'application/json',
-        'Authorization': `Basic os_v2_app_e2x5rpf5kzh7dacmqsiljhknfw2bfbzk3pmeovvnxwbmull6orajzbjwxdyinuj6yclfrcjxi7qfeondrhtfg2qi2zgilwvm4lzydwi` // Replace with your OneSignal REST API Key
-      },
-      data: notification
+    // Prepare the notification data
+    const notification = {
+      eventId: results.insertId,  // Store the event ID so that we know which event the notification relates to
+      app_id: "26afd8bc-bd56-4ff1-804c-8490b49d4d2d", // OneSignal app ID
+      headings: { "en": "New event is added. Check it out!" },
+      contents: { "en": eventName },
+      included_segments: "Total Subscriptions", // Send notification to all users, or you can customize it
+      data: {}
     };
 
-    // Make API call to send notification
-    axios(options)
-      .then(response => {
-        console.log('Notification sent:', response.data);
-      })
-      .catch(error => {
-        console.error('Error sending notification:', error);
-      });
+    // SQL query to insert the notification into the notifications table
+    const notificationSql = `INSERT INTO notification (content, type)
+                             VALUES (?, ?)`;
 
-    // Return response to the client
-    return res.status(200).json({ message: 'Event added successfully', eventId: results.insertId });
+    // Insert notification into the database
+    db.query(notificationSql, [
+      JSON.stringify(notification.contents),
+      "event"
+    ], (err, notificationResults) => {
+      if (err) {
+        console.error('Error inserting notification into database:', err);
+        return res.status(500).json({ error: 'Error inserting notification' });
+      }
+
+      console.log('Notification inserted into database:', notificationResults);
+
+      // Now, send the notification via OneSignal
+      const notificationPayload = {
+        app_id: notification.app_id,
+        headings: notification.headings,
+        contents: notification.contents,
+        included_segments: notification.included_segments,
+        data: notification.data
+      };
+
+      const options = {
+        method: 'POST',
+        url: 'https://onesignal.com/api/v1/notifications',  // OneSignal API endpoint
+        headers: {
+          accept: 'application/json',
+          'content-type': 'application/json',
+          'Authorization': `Basic os_v2_app_e2x5rpf5kzh7dacmqsiljhknfw2bfbzk3pmeovvnxwbmull6orajzbjwxdyinuj6yclfrcjxi7qfeondrhtfg2qi2zgilwvm4lzydwi` // Replace with your OneSignal REST API Key
+        },
+        data: notificationPayload
+      };
+
+      axios(options)
+        .then(response => {
+          console.log('Notification sent via OneSignal:', response.data);
+        })
+        .catch(error => {
+          console.error('Error sending notification:', error);
+        });
+
+      // Return response to the client
+      return res.status(200).json({ message: 'Event added, notification stored, and push notification sent successfully', eventId: results.insertId });
+    });
   });
 });
+
+
 
 
 router.post('/addFeedback', async (req, res) => {
@@ -359,6 +404,14 @@ router.post('/CreateAnnouncements', async (req, res) => {
       return res.status(400).json({ error: "Title and description are required" });
     }
 
+    const notification = {
+      "app_id": "26afd8bc-bd56-4ff1-804c-8490b49d4d2d", // OneSignal app ID
+      "headings": { "en": "Announcement" },
+      "contents": { "en": title },
+      "included_segments": "Total Subscriptions", // Send notification to all users, or you can customize it
+      "data": {}
+    };
+
     const sql = `
       INSERT INTO Announcement (title, description, audience, status, userId) 
       VALUES (?, ?, ?, 'active',?)
@@ -368,6 +421,27 @@ router.post('/CreateAnnouncements', async (req, res) => {
         console.error("Database error:", err);
         return res.status(500).json({ error: "Failed to create announcement" });
       }
+
+      const options = {
+        method: 'POST',
+        url: 'https://onesignal.com/api/v1/notifications', // Correct OneSignal API endpoint
+        headers: {
+          accept: 'application/json',
+          'content-type': 'application/json',
+          'Authorization': `Basic os_v2_app_e2x5rpf5kzh7dacmqsiljhknfw2bfbzk3pmeovvnxwbmull6orajzbjwxdyinuj6yclfrcjxi7qfeondrhtfg2qi2zgilwvm4lzydwi` // Replace with your OneSignal REST API Key
+        },
+        data: notification
+      };
+  
+      // Make API call to send notification
+      axios(options)
+        .then(response => {
+          console.log('Notification sent:', response.data);
+        })
+        .catch(error => {
+          console.error('Error sending notification:', error);
+        });
+  
       res.status(201).json({
         message: "Announcement created successfully!",
         announcementId: result.insertId,
