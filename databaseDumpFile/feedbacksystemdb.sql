@@ -76,8 +76,8 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`userId`, `firstName`, `middleName`, `lastName`, `extensionName`, `birthday`, `purok`, `civilStatus`, `userName`, `userType`, `password`, `createdAt`, `status`, `educationBackground`) VALUES
-(2, 'Joshua ', 'Nomong', 'Daquila', '', '2002-01-24', '1', 'Single', 'joshuadaquila', 'user', '$2b$10$JZ/OytNAJF.iKkba0UwsVuDpddA4Unpb2XV3iNea2HHdiRTd1Tf3i', '2024-12-01 07:02:28', 'active', 'College Graduate'),
-(3, 'Joshua ', 'Nomong', 'Daquila', '', '2002-01-24', '4', 'Single', 'adminJoshua', 'admin', '$2b$10$j7E1tCyR3q9n3HKfLFb.fezbMb3YcSnSJ9nSeCQ/VY1g6loKe4IOm', '2024-12-01 07:05:26', 'active', 'College Level');
+(2, 'Jayrose ', 'Sale', 'Lignig', '', '2002-01-24', '1', 'Single', 'jayroselignig', 'user', '$2b$10$JZ/OytNAJF.iKkba0UwsVuDpddA4Unpb2XV3iNea2HHdiRTd1Tf3i', '2024-12-01 07:02:28', 'active', 'College Graduate'),
+(3, 'Jayrose ', 'Sale', 'Lignig', '', '2002-01-24', '4', 'Single', 'adminJayrose', 'admin', '$2b$10$j7E1tCyR3q9n3HKfLFb.fezbMb3YcSnSJ9nSeCQ/VY1g6loKe4IOm', '2024-12-01 07:05:26', 'active', 'College Level');
 
 --
 -- Indexes for dumped tables
@@ -135,35 +135,46 @@ COMMIT;
 -- Table structure for table `announcement`
 --
 
+-- CREATE TABLE `announcement` (
+--   `announcementId` int(11) NOT NULL AUTO_INCREMENT,
+--   `audience` varchar(255) NOT NULL,
+--   `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+--   `title` varchar(255) NOT NULL,
+--   `description` text,
+--   `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+--   PRIMARY KEY (`announcementId`)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- -- --------------------------------------------------------
+
+-- -- Indexes for dumped tables
+
+-- --
+-- -- Indexes for table `announcement`
+-- --
+-- -- ALTER TABLE `announcement`
+-- --   ADD PRIMARY KEY (`announcementId`);
+
+-- -- AUTO_INCREMENT for dumped tables
+
+-- --
+-- -- AUTO_INCREMENT for table `announcement`
+-- --
+-- ALTER TABLE `announcement`
+--   MODIFY `announcementId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+-- COMMIT;
+
 CREATE TABLE `announcement` (
-  `announcementId` int(11) NOT NULL AUTO_INCREMENT,
-  `audience` varchar(255) NOT NULL,
-  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `title` varchar(255) NOT NULL,
-  `description` text,
-  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `announcementId` INT(11) NOT NULL AUTO_INCREMENT,
+  `audience` VARCHAR(255) DEFAULT 'All', -- Defaults to 'All' if not provided
+  `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `title` VARCHAR(255) NOT NULL,
+  `description` TEXT, -- Keep this flexible for longer content
+  `status` ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
   PRIMARY KEY (`announcementId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
--- Indexes for dumped tables
-
---
--- Indexes for table `announcement`
---
--- ALTER TABLE `announcement`
---   ADD PRIMARY KEY (`announcementId`);
-
--- AUTO_INCREMENT for dumped tables
-
---
--- AUTO_INCREMENT for table `announcement`
---
-ALTER TABLE `announcement`
-  MODIFY `announcementId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
-
-COMMIT;
 
 
 -- Create table for 'feedbacks'

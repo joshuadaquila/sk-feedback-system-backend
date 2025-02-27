@@ -71,7 +71,7 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Username and password are required' });
   }
 
-  const sql = 'SELECT * FROM user WHERE userName = ?';
+  const sql = 'SELECT * FROM user WHERE userName = ? AND status = "active"';
   db.query(sql, [userName], async (err, results) => {
     if (err) {
       console.error(err);
@@ -98,18 +98,30 @@ router.post('/login', async (req, res) => {
     try {
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-      res.status(200).json({
-        message: 'Login successful!',
-        role: user.userType,
-        userId: user.userId,
-        token,
+      // Now update the lastLogin field in the user table
+      const updateSql = 'UPDATE user SET lastLogin = CURRENT_TIMESTAMP WHERE userId = ?';
+      db.query(updateSql, [user.userId], (updateErr, updateResults) => {
+        if (updateErr) {
+          console.error('Error updating lastLogin:', updateErr);
+          return res.status(500).json({ error: 'Error updating last login time' });
+        }
+
+        // Respond with success message and token
+        res.status(200).json({
+          message: 'Login successful!',
+          role: user.userType,
+          userId: user.userId,
+          token,
+        });
       });
+
     } catch (err) {
       console.error('Error signing JWT:', err);
       res.status(500).json({ error: 'Error generating JWT token' });
     }
   });
 });
+
 
 const verifyToken = (req, res, next) => {
   const token = req.headers['authorization']; 
@@ -293,6 +305,7 @@ router.post('/addEvent', async (req, res) => {
 
 
 
+
 router.post('/addFeedback', async (req, res) => {
   const { userId, eventId, content } = req.body;
 
@@ -338,13 +351,30 @@ router.get('/getFeedback', async (req, res) => {
   });
 });
 
+router.get('/getAllUsers', async (req, res) => {
+  const sql = `
+    SELECT *
+    FROM user
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+
+    return res.status(200).json(results);
+  });
+});
+
+
 router.get('/getFeedbackByEvent/:eventId', async (req, res) => {
   const { eventId } = req.params;
 
   const sql = `
     SELECT 
-      f.content,
-      f.userId
+      f.*
     FROM feedbacks f
     WHERE f.eventId = ? AND f.status = 'active'
     ORDER BY f.createdAt DESC;
@@ -403,6 +433,7 @@ router.post('/CreateAnnouncements', async (req, res) => {
     if (!title || !description) {
       return res.status(400).json({ error: "Title and description are required" });
     }
+    
 
     const notification = {
       "app_id": "26afd8bc-bd56-4ff1-804c-8490b49d4d2d", // OneSignal app ID
@@ -421,7 +452,7 @@ router.post('/CreateAnnouncements', async (req, res) => {
         console.error("Database error:", err);
         return res.status(500).json({ error: "Failed to create announcement" });
       }
-
+      
       const options = {
         method: 'POST',
         url: 'https://onesignal.com/api/v1/notifications', // Correct OneSignal API endpoint
