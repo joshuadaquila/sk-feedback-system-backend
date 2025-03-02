@@ -220,6 +220,26 @@ router.get('/getNotifications', async (req, res) => {
   });
 });
 
+router.get('/getEvents', async (req, res) => {
+  const sql = `SELECT * FROM events`;
+
+  // Execute the query to fetch notifications
+  db.query(sql, (err, results) => {
+    if (err) {
+      // Log the error and send a 500 status if there's a database error
+      console.error('Error fetching notifications:', err);
+      return res.status(500).json({ error: 'Database error while fetching notifications' });
+    }
+
+    // If there are results, send them back as a JSON response
+    return res.status(200).json({
+      message: 'Events fetched successfully',
+      events: results
+    });
+  });
+});
+
+
 
 router.post('/addEvent', async (req, res) => {
   const { eventName, description, place, userId, startDate, endDate } = req.body;
@@ -302,6 +322,134 @@ router.post('/addEvent', async (req, res) => {
   });
 });
 
+router.post('/updateEvent', async (req, res) => {  // Changed POST to PUT
+  const { eventId, eventName, description, place, userId, startDate, endDate } = req.body;
+
+  console.log(req.body);
+
+  // Check for missing fields
+  if (!eventId || !eventName || !description || !place || !userId || !startDate || !endDate) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // SQL query to update the event
+  const sql = `UPDATE events SET eventName = ?, description = ?, place = ?, userId = ?, startDate = ?, endDate = ?
+               WHERE eventId = ?`;
+
+  // Update event in the database
+  db.query(sql, [eventName, description, place, userId, startDate, endDate, eventId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    console.log('Event updated successfully:', results);
+
+    // Return response to the client
+    return res.status(200).json({ message: 'Event updated successfully', eventId });
+  });
+});
+
+router.post('/disableUser/:userId', async (req, res) => {  // Changed POST to PUT
+  const { userId } = req.params;
+
+  console.log(userId);
+
+  // Check for missing fields
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // SQL query to update the event
+  const sql = `UPDATE user SET status = "disabled"
+               WHERE userId = ?`;
+
+  // Update event in the database
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    console.log('Event updated successfully:', results);
+
+    // Return response to the client
+    return res.status(200).json({ message: 'User disabled successfully', userId });
+  });
+});
+
+router.post('/deleteUser/:userId', async (req, res) => {  // Changed POST to PUT
+  const { userId } = req.params;
+
+  console.log(userId);
+
+  // Check for missing fields
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // SQL query to update the event
+  const sql = `UPDATE user SET status = "deleted"
+               WHERE userId = ?`;
+
+  // Update event in the database
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    console.log('Event updated successfully:', results);
+
+    // Return response to the client
+    return res.status(200).json({ message: 'User disabled successfully', userId });
+  });
+});
+
+
+router.post('/enableUser/:userId', async (req, res) => {  // Changed POST to PUT
+  const { userId } = req.params;
+
+  console.log(userId);
+
+  // Check for missing fields
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // SQL query to update the event
+  const sql = `UPDATE user SET status = "active"
+               WHERE userId = ?`;
+
+  // Update event in the database
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    console.log('Event updated successfully:', results);
+
+    // Return response to the client
+    return res.status(200).json({ message: 'User disabled successfully', userId });
+  });
+});
 
 
 
@@ -355,6 +503,7 @@ router.get('/getAllUsers', async (req, res) => {
   const sql = `
     SELECT *
     FROM user
+    WHERE NOT status = "deleted"
   `;
 
   db.query(sql, (err, results) => {
@@ -412,7 +561,7 @@ router.get('/getFeedbackByEvent/:eventId', async (req, res) => {
 
 
 router.get('/getAllEvents', async (req, res) => {
-  const sql = 'SELECT e.*, u.* FROM events e INNER JOIN user u ON e.userId = u.userId'; 
+  const sql = 'SELECT e.*, u.* FROM events e INNER JOIN user u ON e.userId = u.userId WHERE e.status= "active"'; 
 
   db.query(sql, (err, results) => {
     if (err) {
@@ -545,7 +694,7 @@ router.delete('/deleteEvent/:eventId', async (req, res) => {
   }
 
   try {
-    const sql = "DELETE FROM Events WHERE eventId = ?";  
+    const sql = "UPDATE events SET status = 'deleted' WHERE eventId = ?";  
 
     db.query(sql, [eventId], (err, result) => {
       if (err) {
