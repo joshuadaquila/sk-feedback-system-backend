@@ -39,7 +39,7 @@ router.get('/generateReport', async (req, res) => {
 
     // Send the feedback content to the external API in the required format
     const sentimentResponse = await axios.post(
-      'http://127.0.0.1:5000/predict',
+      'https://sentiment-api-1.onrender.com/predict',
       { texts: feedbackTexts } // Proper format: { texts: ["feedback1", "feedback2", ...] }
     );
 
