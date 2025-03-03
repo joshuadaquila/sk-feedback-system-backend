@@ -117,7 +117,7 @@ router.get('/generateEventReport', async (req, res) => {
 
     // Send the feedback content and eventId to the external API for sentiment analysis
     const sentimentResponse = await axios.post(
-      'http://127.0.0.1:5000/predictEvent',
+      'https://sentiment-api-1.onrender.com/predictEvent',
       sentimentRequestData  // Send the eventId and feedback texts
     );
 
