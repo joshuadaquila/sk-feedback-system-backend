@@ -185,11 +185,7 @@ router.get('/getProfile', async (req, res) => {
         // console.log("User data retrieved:", user);
 
         res.json({
-          firstName: user.firstName,
-          middleName: user.middleName,
-          lastName: user.lastName,
-          address: user.address,
-          purok: user.purok,
+          user: user,
           profilePic: user.profilePic || 'https://via.placeholder.com/150',
         });
         // console.log("Profile data sent to client");
