@@ -589,7 +589,7 @@ router.post('/CreateAnnouncements', async (req, res) => {
     };
 
     const sql = `
-      INSERT INTO Announcement (title, description, audience, status, userId) 
+      INSERT INTO announcement (title, description, audience, status, userId) 
       VALUES (?, ?, ?, 'active',?)
     `;
     db.query(sql, [title, description, audience, userId], (err, result) => {
