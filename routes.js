@@ -67,10 +67,12 @@ router.post('/login', async (req, res) => {
 
   console.log(userName, password);
 
+  // Check if username and password are provided
   if (!userName || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
 
+  // Select the user from the database
   const sql = 'SELECT * FROM user WHERE userName = ? AND status = "active"';
   db.query(sql, [userName], async (err, results) => {
     if (err) {
@@ -84,11 +86,13 @@ router.post('/login', async (req, res) => {
 
     const user = results[0];
 
+    // Compare the password provided by the user with the one in the database
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
       return res.status(400).json({ error: 'Invalid username or password' });
     }
 
+    // Create a JWT payload
     const payload = {
       userId: user.userId,
       userName: user.userName,
@@ -96,22 +100,32 @@ router.post('/login', async (req, res) => {
     };
 
     try {
+      // Generate JWT token
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-      // Now update the lastLogin field in the user table
-      const updateSql = 'SET time_zone = "+08:00"; UPDATE user SET lastLogin = CURRENT_TIMESTAMP WHERE userId = ?';
-      db.query(updateSql, [user.userId], (updateErr, updateResults) => {
-        if (updateErr) {
-          console.error('Error updating lastLogin:', updateErr);
-          return res.status(500).json({ error: 'Error updating last login time' });
+      // Set the time zone to Philippine Time (UTC +8)
+      const setTimeZoneSql = 'SET time_zone = "+08:00"';
+      db.query(setTimeZoneSql, (setErr, setResults) => {
+        if (setErr) {
+          console.error('Error setting time zone:', setErr);
+          return res.status(500).json({ error: 'Error setting time zone' });
         }
 
-        // Respond with success message and token
-        res.status(200).json({
-          message: 'Login successful!',
-          role: user.userType,
-          userId: user.userId,
-          token,
+        // Update the lastLogin field with the current timestamp in Philippine Time
+        const updateSql = 'UPDATE user SET lastLogin = CURRENT_TIMESTAMP WHERE userId = ?';
+        db.query(updateSql, [user.userId], (updateErr, updateResults) => {
+          if (updateErr) {
+            console.error('Error updating lastLogin:', updateErr);
+            return res.status(500).json({ error: 'Error updating last login time' });
+          }
+
+          // Respond with success message and token
+          res.status(200).json({
+            message: 'Login successful!',
+            role: user.userType,
+            userId: user.userId,
+            token,
+          });
         });
       });
 
@@ -121,6 +135,7 @@ router.post('/login', async (req, res) => {
     }
   });
 });
+
 
 
 const verifyToken = (req, res, next) => {
