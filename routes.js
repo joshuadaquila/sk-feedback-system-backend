@@ -103,29 +103,26 @@ router.post('/login', async (req, res) => {
       // Generate JWT token
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-      // Set the time zone to Philippine Time (UTC +8)
-      const setTimeZoneSql = 'SET time_zone = "+08:00"';
-      db.query(setTimeZoneSql, (setErr, setResults) => {
-        if (setErr) {
-          console.error('Error setting time zone:', setErr);
-          return res.status(500).json({ error: 'Error setting time zone' });
+      // Get the current time in the Philippines time zone (UTC+8)
+      const philippinesTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' });
+
+      // Format the date into MySQL-compatible format (YYYY-MM-DD HH:MM:SS)
+      const formattedTime = new Date(philippinesTime).toISOString().slice(0, 19).replace('T', ' ');
+
+      // Now perform the update to set lastLogin with the formatted date
+      const updateSql = 'UPDATE user SET lastLogin = ? WHERE userId = ?';
+      db.query(updateSql, [formattedTime, user.userId], (updateErr, updateResults) => {
+        if (updateErr) {
+          console.error('Error updating lastLogin:', updateErr);
+          return res.status(500).json({ error: 'Error updating last login time' });
         }
 
-        // Update the lastLogin field with the current timestamp in Philippine Time
-        const updateSql = 'UPDATE user SET lastLogin = CURRENT_TIMESTAMP WHERE userId = ?';
-        db.query(updateSql, [user.userId], (updateErr, updateResults) => {
-          if (updateErr) {
-            console.error('Error updating lastLogin:', updateErr);
-            return res.status(500).json({ error: 'Error updating last login time' });
-          }
-
-          // Respond with success message and token
-          res.status(200).json({
-            message: 'Login successful!',
-            role: user.userType,
-            userId: user.userId,
-            token,
-          });
+        // Respond with success message and token
+        res.status(200).json({
+          message: 'Login successful!',
+          role: user.userType,
+          userId: user.userId,
+          token,
         });
       });
 
@@ -135,6 +132,7 @@ router.post('/login', async (req, res) => {
     }
   });
 });
+
 
 
 
