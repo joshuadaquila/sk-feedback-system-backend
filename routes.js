@@ -99,7 +99,7 @@ router.post('/login', async (req, res) => {
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
       // Now update the lastLogin field in the user table
-      const updateSql = 'UPDATE user SET lastLogin = UTC_TIMESTAMP() WHERE userId = ?';
+      const updateSql = 'UPDATE user SET lastLogin = NOW() WHERE userId = ?';
       db.query(updateSql, [user.userId], (updateErr, updateResults) => {
         if (updateErr) {
           console.error('Error updating lastLogin:', updateErr);
