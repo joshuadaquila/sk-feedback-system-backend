@@ -251,7 +251,7 @@ router.get('/getEvents', async (req, res) => {
 
 
 router.post('/addEvent', async (req, res) => {
-  const { eventName, description, place, userId, startDate, endDate } = req.body;
+  const { eventName, description, place, userId, startDate, endDate, url } = req.body;
 
   console.log(req.body);
 
@@ -261,11 +261,11 @@ router.post('/addEvent', async (req, res) => {
   }
 
   // SQL query to insert the event
-  const sql = `INSERT INTO events (eventName, description, place, userId, startDate, endDate)
-               VALUES (?, ?, ?, ?, ?, ?)`;
+  const sql = `INSERT INTO events (eventName, description, place, userId, startDate, endDate, url)
+               VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
   // Insert event into the database
-  db.query(sql, [eventName, description, place, userId, startDate, endDate], (err, results) => {
+  db.query(sql, [eventName, description, place, userId, startDate, endDate, url], (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: 'Database error' });
