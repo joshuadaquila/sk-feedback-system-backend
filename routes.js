@@ -570,7 +570,19 @@ router.get('/getFeedbackByEvent/:eventId', async (req, res) => {
 
 
 router.get('/getAllEvents', async (req, res) => {
-  const sql = 'SELECT e.*, u.* FROM events e INNER JOIN user u ON e.userId = u.userId WHERE e.status= "active"'; 
+  const sql = `SELECT 
+      e.*, 
+      u.*, 
+      e.createdAt AS eventCreatedAt, 
+      u.createdAt AS userCreatedAt
+    FROM 
+      events e
+    INNER JOIN 
+      user u 
+      ON e.userId = u.userId
+    WHERE 
+      e.status = 'active';
+    `; 
 
   db.query(sql, (err, results) => {
     if (err) {
