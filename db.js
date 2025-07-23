@@ -3,9 +3,9 @@ const mysql = require('mysql2');  // Using mysql2 for better performance and con
 // Configure MySQL connection pool with hardcoded credentials
 const db = mysql.createPool({
   host: 'sql12.freesqldatabase.com',  // Host address
-  user: 'sql12770988',  // Database user
-  password: 'lu3XGPTAW9',  // Database password
-  database: 'sql12770988',  // Database name
+  user: 'sql12791517',  // Database user
+  password: 'aA9Qerri8J',  // Database password
+  database: 'sql12791517',  // Database name
   port: 3306,  // Port for MySQL (default 3306)
   connectionLimit: 700,  // Max number of connections in the pool
   acquireTimeout: 30000, // Timeout for acquiring a connection (30 seconds)
